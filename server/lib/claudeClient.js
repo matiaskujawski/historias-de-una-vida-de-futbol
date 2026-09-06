@@ -57,13 +57,23 @@ async function generarConClaude({ club, personajes, relato, destinatario }) {
     destinatario: destinatario || null,
   };
 
+  const headers = {
+    "content-type": "application/json",
+    "x-api-key": process.env.ANTHROPIC_API_KEY,
+    "anthropic-version": "2023-06-01",
+  };
+  // Algunas API keys de Anthropic no están asociadas a un workspace por
+  // defecto y la API exige indicar cuál usar con este header (ver
+  // ANTHROPIC_WORKSPACE_ID en .env.example). Con una key ya scopeada a un
+  // workspace (creada desde adentro de ese workspace en la consola) esto
+  // no hace falta.
+  if (process.env.ANTHROPIC_WORKSPACE_ID) {
+    headers["anthropic-workspace-id"] = process.env.ANTHROPIC_WORKSPACE_ID;
+  }
+
   const res = await fetch(ANTHROPIC_API_URL, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": process.env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
+    headers,
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 4000,
