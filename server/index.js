@@ -12,8 +12,9 @@ const jobs = require("./lib/jobs");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const UPLOADS_DIR = path.join(__dirname, "..", "output", "uploads");
-const LIBROS_DIR = path.join(__dirname, "..", "output", "libros");
+const OUTPUT_DIR = path.join(__dirname, "..", "output");
+const UPLOADS_DIR = path.join(OUTPUT_DIR, "uploads");
+const LIBROS_DIR = path.join(OUTPUT_DIR, "libros");
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 fs.mkdirSync(LIBROS_DIR, { recursive: true });
 
@@ -23,9 +24,9 @@ app.use(express.json({ limit: "2mb" }));
 // Frontend estático (sin build step)
 app.use(express.static(path.join(__dirname, "..", "web")));
 
-// Archivos generados: fotos de referencia subidas + imágenes de los libros
-app.use("/media/uploads", express.static(UPLOADS_DIR));
-app.use("/media/libros", express.static(LIBROS_DIR));
+// Archivos generados: fotos de referencia, imágenes de los libros y el
+// caché de referencias de personajes, todo bajo output/ servido en /media.
+app.use("/media", express.static(OUTPUT_DIR));
 
 const upload = multer({
   storage: multer.diskStorage({

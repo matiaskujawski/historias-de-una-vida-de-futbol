@@ -90,36 +90,39 @@ async function correrRender(id) {
     }
 
     // Tapa
-    if (!job.tapaLista) {
+    job.imagenes = job.imagenes || {};
+    if (!job.imagenes.tapa) {
       job.paso = "Dibujando la tapa del libro...";
       guardarJob(job);
-      const outTapa = path.join(libroDir, "tapa.png");
       const personajePrincipal = job.guion.personajes_en_libro?.[0];
-      await generarImagen({
+      const rutaTapa = await generarImagen({
         prompt: job.guion.tapa.descripcion_visual,
         colores: job.club.colores,
-        outPath: outTapa,
+        dir: libroDir,
+        base: "tapa",
         imagenReferenciaUrl: personajePrincipal ? referencias[personajePrincipal] : undefined,
         etiqueta: job.guion.tapa.texto,
       });
-      job.tapaLista = true;
+      job.imagenes.tapa = path.basename(rutaTapa);
       guardarJob(job);
     }
 
     // Páginas
     for (const pagina of job.guion.paginas) {
-      const outPagina = path.join(libroDir, `pagina-${pagina.numero}.png`);
-      if (!fs.existsSync(outPagina)) {
+      const clave = `pagina-${pagina.numero}`;
+      if (!job.imagenes[clave]) {
         job.paso = `Ilustrando la página ${pagina.numero} de ${job.totalPaginas}...`;
         guardarJob(job);
         const primerPersonaje = pagina.personajes_en_pagina?.[0];
-        await generarImagen({
+        const rutaPagina = await generarImagen({
           prompt: pagina.descripcion_visual,
           colores: job.club.colores,
-          outPath: outPagina,
+          dir: libroDir,
+          base: clave,
           imagenReferenciaUrl: primerPersonaje ? referencias[primerPersonaje] : undefined,
           etiqueta: pagina.texto,
         });
+        job.imagenes[clave] = path.basename(rutaPagina);
       }
       job.paginasListas = pagina.numero;
       guardarJob(job);
@@ -132,11 +135,11 @@ async function correrRender(id) {
       club: job.club,
       destinatario: job.destinatario,
       resumen: job.guion.resumen,
-      tapa: { texto: job.guion.tapa.texto, imagen: `/media/libros/${id}/tapa.png` },
+      tapa: { texto: job.guion.tapa.texto, imagen: `/media/libros/${id}/${job.imagenes.tapa}` },
       paginas: job.guion.paginas.map((p) => ({
         numero: p.numero,
         texto: p.texto,
-        imagen: `/media/libros/${id}/pagina-${p.numero}.png`,
+        imagen: `/media/libros/${id}/${job.imagenes[`pagina-${p.numero}`]}`,
       })),
       creadoEn: job.creadoEn,
     };

@@ -35,7 +35,7 @@ async function main() {
   }
 
   const dirLibro = path.join(__dirname, "..", "output", "libros", job.id);
-  const archivosEsperados = ["tapa.png", ...libro.paginas.map((p) => `pagina-${p.numero}.png`)];
+  const archivosEsperados = [path.basename(libro.tapa.imagen), ...libro.paginas.map((p) => path.basename(p.imagen))];
   for (const archivo of archivosEsperados) {
     if (!fs.existsSync(path.join(dirLibro, archivo))) {
       throw new Error(`Falta el archivo esperado: ${archivo}`);
