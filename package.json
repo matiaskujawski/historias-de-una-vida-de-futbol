@@ -1,0 +1,22 @@
+{
+  "name": "historias-de-una-vida-de-futbol",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sitio que convierte la historia de pertenencia de un hincha con su club en un librito ilustrado (caricatura) de 7 a 10 páginas.",
+  "type": "commonjs",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "test:render": "node scripts/test-render.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

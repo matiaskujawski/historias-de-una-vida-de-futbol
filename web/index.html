@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Historias de una vida de fútbol</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-marca">
+      <span class="pelota">⚽</span>
+      <span>Historias de una vida de fútbol</span>
+    </div>
+    <button id="btn-biblioteca" class="link-btn" type="button">Mis libros</button>
+  </header>
+
+  <main id="app">
+
+    <!-- Indicador de pasos -->
+    <ol class="pasos" id="indicador-pasos">
+      <li data-paso="1" class="activo">1. Tu club</li>
+      <li data-paso="2">2. Personajes</li>
+      <li data-paso="3">3. Tu historia</li>
+      <li data-paso="4">4. Confirmar</li>
+    </ol>
+
+    <!-- Paso 1: Club -->
+    <section class="paso" id="paso-1" data-paso="1">
+      <h1>¿De qué club sos?</h1>
+      <p class="ayuda">Elegí tu club para darle identidad a todo el libro: colores, escudo y esa cosa que solo entendemos los hinchas.</p>
+      <input type="text" id="buscador-club" placeholder="Escribí el nombre o el apodo de tu club..." autocomplete="off" />
+      <div id="lista-clubes" class="lista-clubes"></div>
+      <div class="acciones">
+        <button type="button" class="btn btn-primario" id="btn-paso1-siguiente" disabled>Siguiente ➜</button>
+      </div>
+    </section>
+
+    <!-- Paso 2: Personajes -->
+    <section class="paso oculto" id="paso-2" data-paso="2">
+      <h1>¿Quiénes son parte de tu historia?</h1>
+      <p class="ayuda">Sumá familiares, mascotas, o a vos mismo. Si subís una foto, la vamos a usar solo de inspiración para la caricatura — el resultado final siempre es dibujado, nunca la foto real.</p>
+
+      <form id="form-personaje" class="tarjeta-form">
+        <div class="fila">
+          <label>Nombre
+            <input type="text" id="p-nombre" placeholder="Ej: Abuelo Tito" required />
+          </label>
+          <label>Vínculo
+            <input type="text" id="p-vinculo" placeholder="Ej: mi abuelo, mi perro, yo" />
+          </label>
+        </div>
+        <div class="fila">
+          <label>Tipo
+            <select id="p-tipo">
+              <option value="familiar">Familiar</option>
+              <option value="mascota">Mascota</option>
+              <option value="uno_mismo">Yo (quien cuenta la historia)</option>
+            </select>
+          </label>
+          <label>Foto de referencia (opcional)
+            <input type="file" id="p-foto" accept="image/*" />
+          </label>
+        </div>
+        <img id="p-foto-preview" class="preview-foto oculto" alt="Vista previa" />
+        <button type="submit" class="btn btn-secundario">+ Agregar personaje</button>
+      </form>
+
+      <div id="lista-personajes" class="lista-personajes"></div>
+
+      <div class="acciones">
+        <button type="button" class="btn btn-texto" id="btn-paso2-atras">◄ Atrás</button>
+        <button type="button" class="btn btn-primario" id="btn-paso2-siguiente" disabled>Siguiente ➜</button>
+      </div>
+    </section>
+
+    <!-- Paso 3: Historia -->
+    <section class="paso oculto" id="paso-3" data-paso="3">
+      <h1>Contanos tu historia de pertenencia</h1>
+      <p class="ayuda">No hace falta que sea perfecto ni largo — con que cuentes lo esencial alcanza. Nosotros la convertimos en las páginas del libro.</p>
+      <textarea id="relato" rows="8" placeholder="Ej: Mi papá me llevó por primera vez a la cancha cuando tenía 6 años. Desde ese día no me perdí un clásico..."></textarea>
+
+      <label class="label-suave">¿Para quién es este libro? (opcional)
+        <input type="text" id="destinatario" placeholder="Ej: para mi hijo de 5 años, para mi abuelo, para mí mismo" />
+      </label>
+
+      <div class="acciones">
+        <button type="button" class="btn btn-texto" id="btn-paso3-atras">◄ Atrás</button>
+        <button type="button" class="btn btn-primario" id="btn-paso3-siguiente" disabled>Siguiente ➜</button>
+      </div>
+    </section>
+
+    <!-- Paso 4: Confirmación -->
+    <section class="paso oculto" id="paso-4" data-paso="4">
+      <h1>¡Vamos a armar tu libro!</h1>
+      <div class="resumen" id="resumen-confirmacion"></div>
+      <div class="acciones">
+        <button type="button" class="btn btn-texto" id="btn-paso4-atras">◄ Atrás</button>
+        <button type="button" class="btn btn-primario btn-grande" id="btn-generar">Generar mi libro ⚽</button>
+      </div>
+    </section>
+
+    <!-- Paso 5: Generando -->
+    <section class="paso oculto" id="paso-generando">
+      <h1>Estamos armando tu libro...</h1>
+      <div class="cancha-loader"><div class="pelota-rebota">⚽</div></div>
+      <p id="texto-progreso">En cola...</p>
+      <div class="barra-progreso"><div id="barra-progreso-fill"></div></div>
+      <p id="detalle-progreso" class="ayuda"></p>
+      <div id="bloque-error" class="oculto">
+        <p class="error">No pudimos terminar de generar el libro.</p>
+        <button type="button" class="btn btn-primario" id="btn-reintentar">Reintentar</button>
+      </div>
+    </section>
+
+    <!-- Visor del libro -->
+    <section class="paso oculto" id="visor">
+      <div class="visor-libro">
+        <button type="button" class="flecha" id="btn-pagina-atras">◄</button>
+        <div class="hoja">
+          <img id="visor-imagen" alt="Página del libro" />
+          <p id="visor-texto"></p>
+        </div>
+        <button type="button" class="flecha" id="btn-pagina-adelante">►</button>
+      </div>
+      <div class="visor-indicador" id="visor-indicador"></div>
+      <div class="acciones">
+        <button type="button" class="btn btn-texto" id="btn-nueva-historia">+ Crear otra historia</button>
+      </div>
+    </section>
+
+    <!-- Biblioteca -->
+    <section class="paso oculto" id="biblioteca">
+      <h1>Mis libros</h1>
+      <div id="lista-biblioteca" class="lista-biblioteca"></div>
+      <div class="acciones">
+        <button type="button" class="btn btn-texto" id="btn-biblioteca-cerrar">◄ Volver</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

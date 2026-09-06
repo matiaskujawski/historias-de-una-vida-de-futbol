@@ -1,0 +1,10 @@
+node_modules/
+.env
+output/uploads/*
+!output/uploads/.gitkeep
+output/jobs/*
+!output/jobs/.gitkeep
+output/libros/*
+!output/libros/.gitkeep
+*.log
+.DS_Store
