@@ -97,8 +97,18 @@ app.get("/api/libros", (req, res) => {
   res.json(jobs.listarLibros());
 });
 
+// Si el proceso se cuelga por un error suelto en cualquier parte del código
+// mientras hay un libro generándose, preferimos loguear y seguir vivos
+// antes que tirar abajo el proceso (y con él, un render ya pago a mitad de
+// camino). El estado de cada job ya vive en disco, así que esto no tapa
+// errores: el "Reintentar" del frontend, o reanudarJobsInterrumpidos() en
+// el próximo arranque, van a retomar desde donde quedó.
+process.on("unhandledRejection", (err) => console.error("[unhandledRejection]", err));
+process.on("uncaughtException", (err) => console.error("[uncaughtException]", err));
+
 app.listen(PORT, () => {
   console.log(`⚽ Historias de una vida de fútbol — escuchando en http://localhost:${PORT}`);
   console.log(`   Modo imágenes: ${process.env.FAL_KEY ? "fal.ai" : "placeholder (sin FAL_KEY)"}`);
   console.log(`   Modo guion: ${process.env.ANTHROPIC_API_KEY ? "Claude" : "placeholder (sin ANTHROPIC_API_KEY)"}`);
+  jobs.reanudarJobsInterrumpidos();
 });

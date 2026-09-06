@@ -1,29 +1,9 @@
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 
 const { generarSvgPlaceholder } = require("./svgPlaceholder");
 
-const OUTPUT_ROOT = path.join(__dirname, "..", "..", "output");
-const CACHE_DIR = path.join(OUTPUT_ROOT, "cache", "personajes");
-
-// Render define automáticamente RENDER_EXTERNAL_URL con la URL pública del
-// servicio. En local, sin esa variable, cae a localhost — que fal.ai no
-// puede alcanzar (ver limitación documentada en el README).
-const BASE_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 3000}`;
-
 const MODO = process.env.FAL_KEY ? "fal" : "placeholder";
-
-fs.mkdirSync(CACHE_DIR, { recursive: true });
-
-function hashDe(texto) {
-  return crypto.createHash("sha256").update(texto).digest("hex").slice(0, 16);
-}
-
-function urlPublicaDeArchivo(rutaAbsoluta) {
-  const relativa = path.relative(OUTPUT_ROOT, rutaAbsoluta).split(path.sep).join("/");
-  return `${BASE_URL}/media/${relativa}`;
-}
 
 function archivoExistente(dir, base) {
   if (!fs.existsSync(dir)) return null;
@@ -111,23 +91,30 @@ async function generarImagen({ prompt, colores, dir, base, imagenReferenciaUrl, 
 }
 
 /**
- * Devuelve la ruta/URL a usar como referencia visual de un personaje para
- * mantener su aspecto consistente entre páginas:
- *  - si el usuario subió una foto, se usa esa foto directo (inspiración
- *    de rasgos, nunca reproducción textual — eso lo maneja el prompt).
- *  - si no subió foto, se genera una imagen de referencia una sola vez
- *    (cacheada por nombre+descripción) y se reusa en todas las páginas.
+ * Devuelve la referencia visual de un personaje, y si esa referencia es
+ * una FOTO REAL subida por el usuario (la única situación en la que vale
+ * la pena pagar el modelo caro imagen->imagen para que la caricatura se
+ * "inspire" en ella de verdad).
+ *
+ * Optimización de costo clave: fal-ai/flux-pro/kontext (imagen->imagen)
+ * cuesta ~$0.04 por imagen, contra ~$0.003 de fal-ai/flux/schnell
+ * (texto->imagen) — más de 10 veces más caro. Antes esta función generaba
+ * una imagen de referencia (con schnell) para CUALQUIER personaje sin
+ * foto, y esa referencia se volvía a usar como "imagenReferenciaUrl" en
+ * cada página donde aparecía, lo cual terminaba disparando kontext en
+ * casi todas las páginas del libro sin necesidad real. Ahora: si no hay
+ * foto real, no se genera ninguna imagen de referencia (ahorra ese costo
+ * también) y las páginas de ese personaje se generan con schnell directo
+ * — la consistencia la da el tag de texto @Nombre (rasgos) que se repite
+ * en cada página (ver prompts/story-architect.system.md, regla 6), no una
+ * imagen. kontext se reserva exclusivamente para cuando el usuario mismo
+ * subió una foto.
  */
 async function obtenerReferenciaPersonaje(personaje) {
   if (personaje.foto_url) {
-    return personaje.foto_url;
+    return { url: personaje.foto_url, esFotoReal: true };
   }
-
-  const base = hashDe(`${personaje.nombre}::${personaje.descripcion_fisica || ""}::${personaje.tipo || ""}`);
-  const prompt = `Retrato de referencia estilo caricatura cálida de ${personaje.nombre} (${personaje.tipo}), ${personaje.descripcion_fisica || "rasgos cálidos y expresivos, a inventar de forma coherente"}. Fondo neutro, solo el personaje.`;
-
-  const rutaLocal = await generarImagen({ prompt, colores: ["#cccccc", "#ffffff"], dir: CACHE_DIR, base, etiqueta: personaje.nombre });
-  return urlPublicaDeArchivo(rutaLocal);
+  return { url: null, esFotoReal: false };
 }
 
 module.exports = { generarImagen, obtenerReferenciaPersonaje, MODO };

@@ -3,7 +3,11 @@ const path = require("path");
 
 const SYSTEM_PROMPT_PATH = path.join(__dirname, "..", "..", "prompts", "story-architect.system.md");
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
+// Haiku es bastante más barato que Sonnet/Opus y de sobra para esta tarea
+// (armar un JSON estructurado de 7-10 páginas a partir de datos ya dados,
+// no un razonamiento complejo). Se puede subir a un modelo más caro
+// seteando ANTHROPIC_MODEL si la calidad del guion no convence.
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
 
 const MIN_PAGINAS = 7;
 const MAX_PAGINAS = 10;
